@@ -1,0 +1,29 @@
+{
+  "repos": [
+    {
+      "id": 1,
+      "name": "MyUnityProject",
+      "owner": "shenshen11",
+      "url": "https://github.com/shenshen11/MyUnityProject.git",
+      "language": "C#",
+      "stars": 4,
+      "description": "# MyUnityProject",
+      "last_indexed": "2025-10-25",
+      "group": "",
+      "local_path": "G:\\CodeData\\Local\\OpenDeepwikiChanged\\python_frontend\\repos\\shenshen11\\MyUnityProject"
+    },
+    {
+      "id": 2,
+      "name": "AI-Prompts",
+      "owner": "Blue-Soul-commits",
+      "url": "https://github.com/Blue-Soul-commits/AI-Prompts",
+      "language": "Markdown",
+      "stars": 55,
+      "description": "# 个人模型提示词特调仓库",
+      "last_indexed": "2025-10-25",
+      "group": "ai",
+      "local_path": "G:\\CodeData\\Local\\OpenDeepwikiChanged\\python_frontend\\repos\\Blue-Soul-commits\\AI-Prompts"
+    }
+  ],
+  "next_id": 3
+}

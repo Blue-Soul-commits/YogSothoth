@@ -1,0 +1,482 @@
+{% set is_group_view = (view_mode == "groups") %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>仓库列表</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark"></span>
+          <span class="brand-text">Indexed Explorer</span>
+        </div>
+        <nav class="nav">
+          <a
+            href="{{ url_for('index', view='repos', q=search_query, page=1) }}"
+            class="nav-item {{ 'active' if not is_group_view else '' }}"
+          >
+            仓库
+          </a>
+          <a
+            href="{{ url_for('index', view='groups', q=search_query, page=1) }}"
+            class="nav-item {{ 'active' if is_group_view else '' }}"
+          >
+            仓库组
+          </a>
+        </nav>
+        <div class="sidebar-actions">
+          <button type="button" class="sidebar-index-btn" data-open-index-modal>索引仓库</button>
+        </div>
+        <footer class="sidebar-footer">
+          <p>共索引 {{ groups_summary|length }} 个仓库组</p>
+        </footer>
+      </aside>
+
+      <main class="main-content">
+        <header class="search-bar" data-context="repos" {% if is_group_view %}hidden{% endif %}>
+          <form method="get" action="{{ url_for('index') }}" class="search-form" data-search-form="repos">
+            <input type="hidden" name="view" value="repos" />
+            <input
+              type="text"
+              name="q"
+              value="{{ search_query if not is_group_view else '' }}"
+              placeholder="搜索仓库名称、所有者或描述..."
+              class="search-input"
+              data-input="repo"
+            />
+            <button type="submit" class="search-button">搜索</button>
+          </form>
+        </header>
+        <header class="search-bar" data-context="groups" {% if not is_group_view %}hidden{% endif %}>
+          <form method="get" action="{{ url_for('index') }}" class="search-form" data-search-form="groups">
+            <input type="hidden" name="view" value="groups" />
+            <input
+              type="text"
+              name="q"
+              value="{{ search_query if is_group_view else '' }}"
+              placeholder="搜索仓库组名称、语言或最近索引..."
+              class="search-input"
+              data-input="groups"
+            />
+            <button type="submit" class="search-button">搜索</button>
+          </form>
+        </header>
+
+        <section class="repos-section" data-section="repos" {% if is_group_view %}hidden{% endif %}>
+          <header class="section-header">
+            <span class="section-meta">
+              共 {{ pagination.total_pages }} 页 / 当前 {{ pagination.current_page }} 页
+            </span>
+          </header>
+          <div class="card-grid repo-grid">
+            {% for repo in repos %}
+              <article class="card repo-card">
+                <header class="card-header">
+                  <span class="repo-owner">{{ repo.owner }}</span>
+                  <h2 class="repo-name">{{ repo.name }}</h2>
+                </header>
+                <div class="card-body">
+                  <p class="repo-description">{{ repo.description }}</p>
+                  <dl class="repo-meta">
+                    <div>
+                      <dt>主要语言</dt>
+                      <dd>{{ repo.language }}</dd>
+                    </div>
+                    <div>
+                      <dt>收藏</dt>
+                      <dd>{{ repo.stars }}</dd>
+                    </div>
+                    <div>
+                      <dt>索引时间</dt>
+                      <dd>{{ repo.last_indexed }}</dd>
+                    </div>
+                    <div>
+                      <dt>隶属组</dt>
+                      <dd>{{ repo.group }}</dd>
+                    </div>
+                  </dl>
+                </div>
+              </article>
+            {% endfor %}
+          </div>
+
+          <nav class="pagination">
+            <ul>
+              <li class="{{ 'disabled' if not pagination.has_prev else '' }}">
+                {% if pagination.has_prev %}
+                  <a href="{{ page_url(pagination.current_page - 1, view_mode, search_query) }}">上一页</a>
+                {% else %}
+                  <span>上一页</span>
+                {% endif %}
+              </li>
+
+              {% for page_num in range(1, pagination.total_pages + 1) %}
+                <li class="{{ 'current' if page_num == pagination.current_page else '' }}">
+                  {% if page_num == pagination.current_page %}
+                    <span>{{ page_num }}</span>
+                  {% else %}
+                    <a href="{{ page_url(page_num, view_mode, search_query) }}">{{ page_num }}</a>
+                  {% endif %}
+                </li>
+              {% endfor %}
+
+              <li class="{{ 'disabled' if not pagination.has_next else '' }}">
+                {% if pagination.has_next %}
+                  <a href="{{ page_url(pagination.current_page + 1, view_mode, search_query) }}">下一页</a>
+                {% else %}
+                  <span>下一页</span>
+                {% endif %}
+              </li>
+            </ul>
+          </nav>
+        </section>
+
+        <section class="groups-section" data-section="groups" {% if not is_group_view %}hidden{% endif %}>
+          <header class="section-header">
+            <span class="section-meta">展示索引分组的统计信息</span>
+          </header>
+          <div class="card-grid groups-grid">
+            {% for group in groups_summary %}
+              <article class="card group-card">
+                <header class="card-header">
+                  <span class="group-name">{{ group.group }}</span>
+                </header>
+                <div class="card-body">
+                  <div class="metric">
+                    <span class="metric-label">仓库数量</span>
+                    <span class="metric-value">{{ group.count }}</span>
+                  </div>
+                  <div class="metric">
+                    <span class="metric-label">涵盖语言</span>
+                    <span class="metric-value">{{ group.languages }}</span>
+                  </div>
+                  <div class="metric">
+                    <span class="metric-label">最近索引</span>
+                    <span class="metric-value">{{ group.latest_indexed }}</span>
+                  </div>
+                </div>
+              </article>
+            {% endfor %}
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-backdrop" data-index-modal hidden>
+      <div class="modal-layer" data-modal-layer></div>
+      <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="index-modal-title">
+        <header class="modal-header">
+          <h2 id="index-modal-title">索引仓库</h2>
+          <button type="button" class="modal-close" aria-label="关闭" data-close-index-modal>&times;</button>
+        </header>
+        <form class="modal-form">
+          <label class="modal-field">
+            <span class="modal-label">GitHub 仓库 URL</span>
+            <input type="url" name="repoUrl" placeholder="https://github.com/owner/repo" required />
+          </label>
+
+          <fieldset class="modal-fieldset">
+            <legend class="modal-label">索引类型</legend>
+            <div class="modal-radio-group">
+              <label class="modal-radio">
+                <input type="radio" name="repoType" value="single" checked />
+                <span>单个仓库</span>
+              </label>
+              <label class="modal-radio">
+                <input type="radio" name="repoType" value="group" />
+                <span>仓库组</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <label class="modal-field" data-group-field hidden>
+            <span class="modal-label">归属仓库组</span>
+            <input type="text" name="repoGroup" placeholder="例如：core-services" />
+          </label>
+
+          <footer class="modal-footer">
+            <button type="button" class="modal-secondary" data-cancel-index-modal>取消</button>
+            <button type="submit" class="modal-primary" disabled>开始索引</button>
+          </footer>
+        </form>
+      </div>
+    </div>
+
+    <script type="application/json" id="repos-data">
+      {{ all_repos | tojson | safe }}
+    </script>
+    <script type="application/json" id="groups-data">
+      {{ all_groups | tojson | safe }}
+    </script>
+    <script>
+      (() => {
+        const openBtn = document.querySelector("[data-open-index-modal]");
+        const modal = document.querySelector("[data-index-modal]");
+        if (!modal) return;
+
+        const closeBtn = modal.querySelector("[data-close-index-modal]");
+        const cancelBtn = modal.querySelector("[data-cancel-index-modal]");
+        const layer = modal.querySelector("[data-modal-layer]");
+        const form = modal.querySelector(".modal-form");
+        const submitBtn = form?.querySelector(".modal-primary");
+        const urlInput = form?.querySelector('input[name="repoUrl"]');
+        const groupField = modal.querySelector("[data-group-field]");
+        const typeRadios = modal.querySelectorAll('input[name="repoType"]');
+
+        const updateGroupField = () => {
+          const selected = modal.querySelector('input[name="repoType"]:checked');
+          if (selected?.value === "group") {
+            groupField?.removeAttribute("hidden");
+          } else {
+            groupField?.setAttribute("hidden", "");
+            const groupInput = groupField?.querySelector("input");
+            if (groupInput) groupInput.value = "";
+          }
+        };
+
+        const updateSubmitState = () => {
+          if (!submitBtn || !urlInput) return;
+          const hasUrl = urlInput.value.trim().length > 0;
+          submitBtn.disabled = !hasUrl;
+        };
+
+        const toggleModal = (visible) => {
+          if (visible) {
+            modal.hidden = false;
+            document.body.classList.add("modal-open");
+            updateGroupField();
+            updateSubmitState();
+            urlInput?.focus();
+          } else {
+            modal.hidden = true;
+            document.body.classList.remove("modal-open");
+            form?.reset();
+            updateGroupField();
+            updateSubmitState();
+          }
+        };
+
+        openBtn.addEventListener("click", () => toggleModal(true));
+        closeBtn?.addEventListener("click", () => toggleModal(false));
+        cancelBtn?.addEventListener("click", () => toggleModal(false));
+        layer?.addEventListener("click", () => toggleModal(false));
+
+        modal.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") {
+            event.preventDefault();
+            toggleModal(false);
+          }
+        });
+
+        urlInput?.addEventListener("input", updateSubmitState);
+        typeRadios.forEach((radio) => radio.addEventListener("change", updateGroupField));
+        updateGroupField();
+
+        form?.addEventListener("submit", (event) => {
+          event.preventDefault();
+          alert("当前仅展示 UI，实际索引功能尚未接入。");
+          toggleModal(false);
+        });
+      })();
+
+      (() => {
+        const reposSection = document.querySelector('[data-section="repos"]');
+        const groupsSection = document.querySelector('[data-section="groups"]');
+        const repoGrid = reposSection?.querySelector(".card-grid");
+        const groupGrid = groupsSection?.querySelector(".card-grid");
+        const repoPagination = reposSection?.querySelector(".pagination");
+
+        const repoSearchInput = document.querySelector('[data-input="repo"]') || document.querySelector('.search-input:not([data-input])');
+        const repoSearchForm = document.querySelector('[data-search-form="repos"]') || document.querySelector('.search-form');
+        const groupSearchInput = document.querySelector('[data-input="groups"]');
+        const groupSearchForm = document.querySelector('[data-search-form="groups"]');
+
+        const initialRepoMarkup = repoGrid?.innerHTML ?? "";
+        const initialGroupMarkup = groupGrid?.innerHTML ?? "";
+        const initialPaginationMarkup = repoPagination?.innerHTML ?? "";
+        const initialPaginationDisplay = repoPagination ? repoPagination.style.display : "";
+
+        const reposDataElement = document.getElementById("repos-data");
+        const groupsDataElement = document.getElementById("groups-data");
+
+        let allRepos = [];
+        let allGroups = [];
+        try {
+          allRepos = JSON.parse(reposDataElement?.textContent?.trim() || "[]");
+          allGroups = JSON.parse(groupsDataElement?.textContent?.trim() || "[]");
+        } catch (error) {
+          console.error("解析索引数据失败", error);
+        }
+
+        const toText = (value) => String(value ?? "");
+        const normalize = (value) => toText(value).toLowerCase();
+
+        const escapeHtml = (value) =>
+          toText(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+
+        const renderRepoCard = (repo) => `
+          <article class="card repo-card">
+            <header class="card-header">
+              <span class="repo-owner">${escapeHtml(repo.owner)}</span>
+              <h2 class="repo-name">${escapeHtml(repo.name)}</h2>
+            </header>
+            <div class="card-body">
+              <p class="repo-description">${escapeHtml(repo.description)}</p>
+              <dl class="repo-meta">
+                <div>
+                  <dt>主要语言</dt>
+                  <dd>${escapeHtml(repo.language)}</dd>
+                </div>
+                <div>
+                  <dt>收藏</dt>
+                  <dd>${escapeHtml(repo.stars)}</dd>
+                </div>
+                <div>
+                  <dt>索引时间</dt>
+                  <dd>${escapeHtml(repo.last_indexed)}</dd>
+                </div>
+                <div>
+                  <dt>隶属组</dt>
+                  <dd>${escapeHtml(repo.group)}</dd>
+                </div>
+              </dl>
+            </div>
+          </article>
+        `;
+
+        const renderGroupCard = (group) => `
+          <article class="card group-card">
+            <header class="card-header">
+              <span class="group-name">${escapeHtml(group.group)}</span>
+            </header>
+            <div class="card-body">
+              <div class="metric">
+                <span class="metric-label">仓库数量</span>
+                <span class="metric-value">${escapeHtml(group.count)}</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">涵盖语言</span>
+                <span class="metric-value">${escapeHtml(group.languages)}</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">最近索引</span>
+                <span class="metric-value">${escapeHtml(group.latest_indexed)}</span>
+              </div>
+            </div>
+          </article>
+        `;
+
+        const filterRepos = (term) =>
+          allRepos.filter(
+            (repo) =>
+              normalize(repo.name).includes(term) ||
+              normalize(repo.owner).includes(term) ||
+              normalize(repo.description).includes(term) ||
+              normalize(repo.group).includes(term),
+          );
+
+        const filterGroups = (term) =>
+          allGroups.filter(
+            (group) =>
+              normalize(group.group).includes(term) ||
+              normalize(group.languages).includes(term) ||
+              normalize(group.latest_indexed).includes(term),
+          );
+
+        const restoreRepo = () => {
+          if (repoGrid) repoGrid.innerHTML = initialRepoMarkup;
+          if (repoPagination) {
+            repoPagination.innerHTML = initialPaginationMarkup;
+            repoPagination.style.display = initialPaginationDisplay;
+          }
+        };
+
+        const restoreGroup = () => {
+          if (groupGrid) groupGrid.innerHTML = initialGroupMarkup;
+        };
+
+        const applyRepoFilter = () => {
+          const termRaw = repoSearchInput?.value.trim() ?? "";
+          if (!termRaw.length) {
+            restoreRepo();
+            return;
+          }
+          const term = termRaw.toLowerCase();
+
+          if (repoPagination) {
+            repoPagination.style.display = "none";
+          }
+
+          if (repoGrid) {
+            const matches = filterRepos(term);
+            if (matches.length) {
+              repoGrid.innerHTML = matches.map(renderRepoCard).join("");
+            } else {
+              repoGrid.innerHTML = '<div class="empty-hero" style="grid-column:1/-1;"><div class="empty-card"><h3 class="empty-title">没有匹配的结果</h3><p class="empty-desc">尝试更精确的关键词，或索引新的仓库</p><div class="empty-actions"><button type="button" class="modal-primary" data-open-index-modal>索引仓库</button></div></div></div>';
+            }
+          }
+        };
+
+        const applyGroupFilter = () => {
+          const termRaw = groupSearchInput?.value.trim() ?? "";
+          if (!termRaw.length) {
+            restoreGroup();
+            return;
+          }
+          const term = termRaw.toLowerCase();
+
+          if (groupGrid) {
+            const matches = filterGroups(term);
+            if (matches.length) {
+              groupGrid.innerHTML = matches.map(renderGroupCard).join("");
+            } else {
+              groupGrid.innerHTML = '<div class="empty-hero" style="grid-column:1/-1;"><div class="empty-card"><h3 class="empty-title">没有匹配的结果</h3><p class="empty-desc">尝试更精确的关键词，或索引新的仓库</p><div class="empty-actions"><button type="button" class="modal-primary" data-open-index-modal>索引仓库</button></div></div></div>';
+            }
+          }
+        };
+
+        // 事件绑定：仓库
+        repoSearchInput?.addEventListener("input", applyRepoFilter);
+        repoSearchForm?.addEventListener("submit", (event) => {
+          event.preventDefault();
+          applyRepoFilter();
+        });
+
+        // 事件绑定：仓库组
+        groupSearchInput?.addEventListener("input", applyGroupFilter);
+        groupSearchForm?.addEventListener("submit", (event) => {
+          event.preventDefault();
+          applyGroupFilter();
+        });
+
+        // 初始化：若URL中有查询，按当前视图应用过滤
+        if (repoSearchInput && !reposSection?.hasAttribute("hidden") && repoSearchInput.value.trim()) {
+          applyRepoFilter();
+        }
+        if (groupSearchInput && !groupsSection?.hasAttribute("hidden") && groupSearchInput.value.trim()) {
+          applyGroupFilter();
+        }
+
+        // 委托：空态按钮打开“索引仓库”弹窗
+        const sidebarOpenBtn = document.querySelector("[data-open-index-modal]");
+        document.addEventListener("click", (event) => {
+          const target = event.target;
+          const trigger = target instanceof Element ? target.closest("[data-open-index-modal]") : null;
+          if (trigger && sidebarOpenBtn && trigger !== sidebarOpenBtn) {
+            event.preventDefault();
+            sidebarOpenBtn.click();
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
