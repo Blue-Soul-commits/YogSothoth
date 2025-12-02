@@ -1,0 +1,9 @@
+﻿# Example configuration for MCP multi-repo assistant
+
+# SQLAlchemy-style database URL. For early development a local
+# SQLite file is usually enough.
+# db_url: "sqlite:///./data/app.db"
+
+db_url: "sqlite:///./data/app.db"
+repos_root: "./data/repos"
+outlines_root: "./data/outlines"

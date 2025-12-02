@@ -1,0 +1,25 @@
+{
+  "default_provider": "gitnar-openai",
+  "default_chat_provider": "gitnar-openai",
+  "default_embedding_provider": "gitnar-openai",
+  "providers": {
+    "gitnar-openai": {
+      "type": "openai-compatible",
+      "base_url": "https://fastapi.aabao.top/v1",
+      "api_key_env": "OPENAI_API_KEY",
+      "models": {
+        "chat": "gpt-4.1-mini",
+        "embedding": "text-embedding-3-large"
+      }
+    },
+    "gitnar-proxy": {
+      "type": "openai-compatible",
+      "base_url": "https://your-gateway.example.com/v1",
+      "api_key_env": "GITNAR_PROXY_API_KEY",
+      "models": {
+        "chat": "gpt-4.1-mini",
+        "embedding": "text-embedding-3-large"
+      }
+    }
+  }
+}

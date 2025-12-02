@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Gitnar</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="../resources/logo/repo_wiki_icon.svg"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+        background-color: #050505;
+        color: #e5e5e5;
+      }
+
+      .page {
+        min-height: 100vh;
+        display: flex;
+        background-color: #050505;
+      }
+
+      .sidebar {
+        width: 240px;
+        padding: 16px 14px;
+        background: linear-gradient(180deg, #111111, #0b0b0b);
+        border-right: 1px solid #2a2a2a;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .sidebar-logo {
+        margin-bottom: 18px;
+      }
+
+      .logo {
+        display: block;
+        width: 100%;
+        max-width: 180px;
+        height: auto;
+      }
+
+      .brand {
+        display: none;
+      }
+
+      .sidebar-title {
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #a0a0a0;
+        margin-bottom: 10px;
+      }
+
+      .nav-group {
+        margin-bottom: 16px;
+      }
+
+      .nav-button {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        padding: 8px 10px;
+        border-radius: 999px;
+        border: 1px solid transparent;
+        background: #101010;
+        color: #e5e5e5;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.15s ease, border-color 0.15s ease,
+          color 0.15s ease, transform 0.1s ease;
+        text-align: left;
+      }
+
+      .nav-button span {
+        flex: 1;
+        white-space: nowrap;
+      }
+
+      .nav-button-primary {
+        border-color: #707070;
+        background: #181818;
+      }
+
+      .nav-button-secondary {
+        border-color: #303030;
+        background: #111111;
+      }
+
+      .nav-button:hover {
+        background: #222222;
+        border-color: #8a8a8a;
+        transform: translateY(-0.5px);
+      }
+
+      .nav-separator {
+        height: 1px;
+        margin: 8px 4px 12px;
+        border: 0;
+        background: linear-gradient(
+          90deg,
+          rgba(64, 64, 64, 0),
+          rgba(120, 120, 120, 1),
+          rgba(64, 64, 64, 0)
+        );
+      }
+
+      .main-panel {
+        flex: 1;
+        padding: 24px;
+        background-color: #050505;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .search-panel {
+        width: 100%;
+        max-width: 1100px;
+        padding: 14px 20px;
+        border-radius: 16px;
+        border: 1px solid rgba(120, 120, 120, 0.7);
+        background: rgba(15, 15, 15, 0.7);
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(18px);
+        margin-bottom: 20px;
+      }
+
+      .search-label {
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #d4d4d4;
+        margin-bottom: 6px;
+      }
+
+      .search-input-wrapper {
+        border-radius: 999px;
+        border: 1px solid #3a3a3a;
+        background: rgba(5, 5, 5, 0.85);
+        padding: 6px 12px;
+      }
+
+      .search-input {
+        width: 100%;
+        border: none;
+        outline: none;
+        background: transparent;
+        color: #f5f5f5;
+        font-size: 13px;
+      }
+
+      .search-input::placeholder {
+        color: #737373;
+      }
+
+      .search-results {
+        margin-top: 10px;
+        list-style: none;
+        border-radius: 12px;
+        border: 1px solid #262626;
+        background: rgba(7, 7, 7, 0.9);
+        max-height: 200px;
+        overflow-y: auto;
+      }
+
+      .search-result-item {
+        padding: 7px 12px;
+        font-size: 13px;
+        color: #e5e5e5;
+        border-bottom: 1px solid #1a1a1a;
+      }
+
+      .search-result-item:last-child {
+        border-bottom: none;
+      }
+
+      .search-result-item:hover {
+        background: #111111;
+      }
+
+      .results-panel {
+        width: 100%;
+        max-width: 1100px;
+        padding: 18px 20px;
+        border-radius: 18px;
+        border: 1px solid rgba(120, 120, 120, 0.7);
+        background: rgba(15, 15, 15, 0.7);
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(18px);
+        margin-bottom: 10px;
+      }
+
+      .results-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        row-gap: 12px;
+        column-gap: 16px;
+        min-height: 220px;
+      }
+
+      .results-placeholder {
+        grid-column: 1 / -1;
+        font-size: 13px;
+        color: #a3a3a3;
+      }
+
+      .pagination {
+        width: 100%;
+        max-width: 1100px;
+        margin-bottom: 16px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .pagination-button {
+        min-width: 30px;
+        height: 28px;
+        padding: 0 8px;
+        border-radius: 999px;
+        border: 1px solid #444444;
+        background: #0b0b0b;
+        color: #e5e5e5;
+        font-size: 12px;
+        cursor: pointer;
+        transition: background-color 0.15s ease, border-color 0.15s ease,
+          transform 0.1s ease;
+      }
+
+      .pagination-button:hover {
+        background: #1a1a1a;
+        border-color: #b3b3b3;
+        transform: translateY(-0.5px);
+      }
+
+      .pagination-input {
+        width: 40px;
+        height: 28px;
+        border-radius: 999px;
+        border: 1px solid #444444;
+        background: #050505;
+        color: #e5e5e5;
+        font-size: 12px;
+        text-align: center;
+        outline: none;
+      }
+
+      .pagination-input::placeholder {
+        color: #737373;
+      }
+
+      .repo-card {
+        width: 100%;
+        max-width: 320px;
+        padding: 18px 18px;
+        border-radius: 12px;
+        background: linear-gradient(145deg, #101010, #050505);
+        border: 1px solid #262626;
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.65);
+      }
+
+      .repo-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+
+      .repo-card-title-block {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+      }
+
+      .repo-card-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #f5f5f5;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .repo-card-subtitle {
+        font-size: 12px;
+        color: #a3a3a3;
+      }
+
+      .index-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px;
+        border-radius: 999px;
+        border: 1px solid #4a4a4a;
+        background: #111111;
+        cursor: pointer;
+        transition: background-color 0.15s ease, border-color 0.15s ease,
+          transform 0.1s ease;
+      }
+
+      .index-button:hover {
+        background: #1b1b1b;
+        border-color: #b3b3b3;
+        transform: translateY(-0.5px);
+      }
+
+      .index-button-icon {
+        display: block;
+        width: 14px;
+        height: 14px;
+      }
+
+      .repo-card-body {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        row-gap: 10px;
+        column-gap: 24px;
+        padding-top: 6px;
+      }
+
+      .repo-meta-item {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .repo-meta-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: #a3a3a3;
+      }
+
+      .repo-meta-value {
+        font-size: 14px;
+        color: #f5f5f5;
+      }
+
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.65);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 50;
+      }
+
+      .modal-dialog {
+        width: 100%;
+        max-width: 480px;
+        padding: 18px 20px;
+        border-radius: 16px;
+        border: 1px solid rgba(120, 120, 120, 0.7);
+        background: rgba(15, 15, 15, 0.95);
+        box-shadow: 0 22px 55px rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(22px);
+      }
+
+      .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+
+      .modal-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #f5f5f5;
+      }
+
+      .modal-close-button {
+        width: 24px;
+        height: 24px;
+        border-radius: 999px;
+        border: 1px solid #4a4a4a;
+        background: #111111;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        padding: 0;
+        transition: background-color 0.15s ease, border-color 0.15s ease,
+          transform 0.1s ease;
+      }
+
+      .modal-close-button:hover {
+        background: #1b1b1b;
+        border-color: #b3b3b3;
+        transform: translateY(-0.5px);
+      }
+
+      .modal-body {
+        margin-bottom: 14px;
+      }
+
+      .modal-label {
+        display: block;
+        font-size: 12px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #a3a3a3;
+        margin-bottom: 6px;
+      }
+
+      .modal-input {
+        width: 100%;
+        border-radius: 10px;
+        border: 1px solid #3a3a3a;
+        background: #050505;
+        color: #f5f5f5;
+        font-size: 13px;
+        padding: 7px 10px;
+        outline: none;
+      }
+
+      .modal-input::placeholder {
+        color: #737373;
+      }
+
+      .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+
+      .modal-primary,
+      .modal-secondary {
+        min-width: 64px;
+        height: 30px;
+        padding: 0 12px;
+        border-radius: 999px;
+        border: 1px solid #4a4a4a;
+        font-size: 12px;
+        cursor: pointer;
+        transition: background-color 0.15s ease, border-color 0.15s ease,
+          transform 0.1s ease;
+      }
+
+      .modal-primary {
+        background: #f5f5f5;
+        color: #050505;
+        border-color: #e5e5e5;
+      }
+
+      .modal-primary:hover {
+        background: #ffffff;
+        border-color: #ffffff;
+        transform: translateY(-0.5px);
+      }
+
+      .modal-secondary {
+        background: #111111;
+        color: #e5e5e5;
+      }
+
+      .modal-secondary:hover {
+        background: #1b1b1b;
+        border-color: #b3b3b3;
+        transform: translateY(-0.5px);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <!-- Vue 3 via CDN for now; later we can switch to a bundled setup -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script>
+      const { createApp } = Vue;
+
+      createApp({
+        data() {
+          return {
+            searchQuery: "",
+            pageJump: "",
+            showIndexModal: false,
+            indexRepoUrl: "",
+            // 示例标题列表：后续可由后端返回
+            allTitles: [
+              "gitnar/core",
+              "gitnar/agent",
+              "gitnar/indexer",
+              "gitnar-ui",
+              "repo-wiki-backend",
+              "repo-wiki-mcp",
+            ],
+            pages: [1, 2, 3, 4, 5, 6, 7, 8],
+          };
+        },
+        computed: {
+          filteredTitles() {
+            const q = this.searchQuery.trim().toLowerCase();
+            if (!q) return [];
+
+            const score = (query, text) => {
+              if (!text) return 0;
+              if (text === query) return 2;
+              if (text.startsWith(query)) return 1.5;
+              let common = 0;
+              for (const ch of new Set(query)) {
+                if (text.includes(ch)) common += 1;
+              }
+              return common / query.length;
+            };
+
+            return this.allTitles
+              .map((title) => ({
+                title,
+                score: score(q, title.toLowerCase()),
+              }))
+              .filter((item) => item.score > 0)
+              .sort((a, b) => b.score - a.score)
+              .slice(0, 6)
+              .map((item) => item.title);
+          },
+        },
+        methods: {
+          openIndexModal() {
+            this.showIndexModal = true;
+          },
+          closeIndexModal() {
+            this.showIndexModal = false;
+            this.indexRepoUrl = "";
+          },
+          submitIndexRepo() {
+            const url = this.indexRepoUrl.trim();
+            if (!url) {
+              return;
+            }
+            // 这里先简单打印，后续会接入实际索引逻辑
+            console.log("Index repo URL:", url);
+            this.closeIndexModal();
+          },
+        },
+        template: `
+          <div class="page">
+            <aside class="sidebar">
+              <div class="sidebar-logo">
+                <img
+                  src="../resources/logo/repo_wiki_logo.svg"
+                  alt="Gitnar 图标"
+                  class="logo"
+                />
+                <span class="brand">Gitnar</span>
+              </div>
+              <div class="sidebar-title">导航</div>
+              <div class="nav-group">
+                <button class="nav-button nav-button-primary" type="button">
+                  <span>仓库WIKI</span>
+                </button>
+                <button
+                  class="nav-button nav-button-secondary"
+                  type="button"
+                  style="margin-top: 8px;"
+                >
+                  <span>仓库组WIKI</span>
+                </button>
+              </div>
+              <hr class="nav-separator" />
+              <div class="nav-group">
+                <button
+                  class="nav-button nav-button-secondary"
+                  type="button"
+                  @click="openIndexModal"
+                >
+                  <span>索引仓库</span>
+                </button>
+              </div>
+            </aside>
+            <main class="main-panel">
+              <section class="search-panel">
+                <div class="search-label">搜索仓库</div>
+                <div class="search-input-wrapper">
+                  <input
+                    v-model="searchQuery"
+                    type="text"
+                    class="search-input"
+                    placeholder="输入仓库名称关键字..."
+                  />
+                </div>
+                <ul class="search-results" v-if="filteredTitles.length">
+                  <li
+                    v-for="title in filteredTitles"
+                    :key="title"
+                    class="search-result-item"
+                  >
+                    {{ title }}
+                  </li>
+                </ul>
+              </section>
+
+              <section class="results-panel">
+                <div class="results-grid">
+                  <div class="results-placeholder">
+                    仓库卡片区域 · 预留 5 行 × 4 列布局，后续将根据搜索结果渲染。
+                  </div>
+                </div>
+              </section>
+
+              <nav class="pagination" aria-label="分页">
+                <button
+                  v-for="page in pages"
+                  :key="page"
+                  type="button"
+                  class="pagination-button"
+                >
+                  {{ page }}
+                </button>
+                <input
+                  v-model="pageJump"
+                  type="text"
+                  class="pagination-input"
+                  placeholder="页"
+                />
+                <button
+                  type="button"
+                  class="pagination-button"
+                >
+                  ...
+                </button>
+              </nav>
+
+              <section class="repo-card" v-if="false">
+                <header class="repo-card-header">
+                  <div class="repo-card-title-block">
+                    <div class="repo-card-title">
+                      仓库信息卡片
+                    </div>
+                    <div class="repo-card-subtitle">
+                      未来将展示选中的仓库详情
+                    </div>
+                  </div>
+                  <button class="index-button" type="button">
+                    <img
+                      src="../resources/icons/refresh.svg"
+                      alt="索引最新仓库"
+                      class="index-button-icon"
+                    />
+                  </button>
+                </header>
+                <div class="repo-card-body">
+                  <div class="repo-meta-item">
+                    <div class="repo-meta-label">库名</div>
+                    <div class="repo-meta-value">
+                      —— 
+                    </div>
+                  </div>
+                  <div class="repo-meta-item">
+                    <div class="repo-meta-label">日期</div>
+                    <div class="repo-meta-value">
+                      —— 
+                    </div>
+                  </div>
+                  <div class="repo-meta-item">
+                    <div class="repo-meta-label">Star</div>
+                    <div class="repo-meta-value">
+                      —— 
+                    </div>
+                  </div>
+                  <div class="repo-meta-item">
+                    <div class="repo-meta-label">作者</div>
+                    <div class="repo-meta-value">
+                      —— 
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </main>
+          </div>
+          <div
+            class="modal-overlay"
+            v-if="showIndexModal"
+          >
+            <div
+              class="modal-dialog"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="index-modal-title"
+            >
+              <header class="modal-header">
+                <div class="modal-title" id="index-modal-title">
+                  索引仓库
+                </div>
+                <button
+                  type="button"
+                  class="modal-close-button"
+                  @click="closeIndexModal"
+                  aria-label="关闭"
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M3 3l6 6m0-6L3 9"
+                      fill="none"
+                      stroke="#e5e5e5"
+                      stroke-width="1.4"
+                      stroke-linecap="round"
+                    />
+                  </svg>
+                </button>
+              </header>
+              <div class="modal-body">
+                <label class="modal-label" for="repo-url-input">仓库 URL</label>
+                <input
+                  id="repo-url-input"
+                  v-model="indexRepoUrl"
+                  type="text"
+                  class="modal-input"
+                  placeholder="例如：https://github.com/owner/repo"
+                />
+              </div>
+              <footer class="modal-footer">
+                <button
+                  type="button"
+                  class="modal-secondary"
+                  @click="closeIndexModal"
+                >
+                  取消
+                </button>
+                <button
+                  type="button"
+                  class="modal-primary"
+                  @click="submitIndexRepo"
+                >
+                  索引
+                </button>
+              </footer>
+            </div>
+          </div>
+        `,
+      }).mount("#app");
+    </script>
+  </body>
+</html>
